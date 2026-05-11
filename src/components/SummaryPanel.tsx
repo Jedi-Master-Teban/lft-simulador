@@ -46,7 +46,7 @@ export function SummaryPanel({ crews, results, firm }: Props) {
         <Tile icon={<Users className="w-4 h-4" />} label="Trabajadores totales" value={String(totalWorkers)} sub={`${crews.length} tripulación${crews.length !== 1 ? 'es' : ''}`} iconColor="#1BBBEE" valueColor="#2D2D2D" />
         <Tile icon={<CheckCircle className="w-4 h-4" />} label="En cumplimiento" value={`${compliant} / ${results.length}`} sub="tripulaciones" iconColor={allOk ? '#10B981' : '#94A3B8'} valueColor={allOk ? '#065F46' : '#555555'} />
         <Tile icon={<XCircle className="w-4 h-4" />} label="Con incumplimiento" value={String(violating)} sub="tripulaciones" iconColor={violating > 0 ? '#EF4444' : '#94A3B8'} valueColor={violating > 0 ? '#991B1B' : '#555555'} />
-        <Tile icon={<TrendingUp className="w-4 h-4" />} label="Costo TE semanal" value={formatMXN(totalCost)} sub="todas las tripulaciones" iconColor={totalCost > 0 ? '#F59E0B' : '#94A3B8'} valueColor={totalCost > 0 ? '#92400E' : '#555555'} />
+        <Tile icon={<TrendingUp className="w-4 h-4" />} label="Costo Semanal" value={formatMXN(totalCost)} sub={totalCost > 0 ? 'por horas extraordinarias' : 'sin horas extra'} iconColor={totalCost > 0 ? '#F59E0B' : '#10B981'} valueColor={totalCost > 0 ? '#92400E' : '#065F46'} />
       </div>
 
       {/* Per-crew breakdown */}

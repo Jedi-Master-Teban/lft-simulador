@@ -193,15 +193,68 @@ export function CrewCard({ crew, result, firm, onUpdate, onDelete }: Props) {
           />
         </div>
 
-        {/* Cost strip */}
+        {/* Cost strip — always visible when a salary is configured */}
         {firm.salarioDiario > 0 && (
-          <div className="flex flex-wrap items-center gap-x-5 gap-y-1 px-4 py-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] text-sm">
-            <span><span className="text-xs text-[#94A3B8]">Costo dobles: </span><span className="font-bold text-[#F59E0B]">{formatMXN(result.doubleCost)}</span></span>
-            <span><span className="text-xs text-[#94A3B8]">Costo triples: </span><span className="font-bold text-[#EF4444]">{formatMXN(result.tripleCost)}</span></span>
-            <div className="sm:ml-auto flex items-center gap-2">
-              <span className="text-xs text-[#94A3B8]">Total TE semanal:</span>
-              <span className="text-lg font-extrabold text-[#2D2D2D]">{formatMXN(result.totalOTCost)}</span>
-            </div>
+          <div
+            className="rounded-xl border overflow-hidden text-sm"
+            style={{ borderColor: result.totalOTCost > 0 ? '#FDE68A' : '#A7F3D0' }}
+          >
+            {result.totalOTCost > 0 ? (
+              <>
+                {/* Breakdown row */}
+                <div className="flex flex-wrap gap-x-5 gap-y-1 px-4 py-2.5 bg-[#F8FAFC] border-b border-[#E2E8F0]">
+                  <span>
+                    <span className="text-xs text-[#94A3B8]">Dobles (2×): </span>
+                    <span className="font-bold text-[#F59E0B]">{formatMXN(result.doubleCost)}</span>
+                  </span>
+                  <span>
+                    <span className="text-xs text-[#94A3B8]">Triples (3×): </span>
+                    <span className="font-bold text-[#EF4444]">{formatMXN(result.tripleCost)}</span>
+                  </span>
+                </div>
+                {/* Extra-cost total row */}
+                <div
+                  className="flex items-center justify-between px-4 py-3"
+                  style={{ background: '#FFFBEB' }}
+                >
+                  <div className="flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4 text-[#F59E0B] shrink-0" />
+                    <div>
+                      <span className="text-[11px] font-extrabold uppercase tracking-wide block text-[#92400E]">
+                        Costo Semanal
+                      </span>
+                      <span className="text-[10px] text-[#B45309]">
+                        Costo adicional por horas extraordinarias
+                      </span>
+                    </div>
+                  </div>
+                  <span className="text-xl font-extrabold text-[#92400E]">
+                    {formatMXN(result.totalOTCost)}
+                  </span>
+                </div>
+              </>
+            ) : (
+              /* No overtime — show $0 with a positive indicator */
+              <div
+                className="flex items-center justify-between px-4 py-3"
+                style={{ background: '#F0FDF4' }}
+              >
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-[#10B981] shrink-0" />
+                  <div>
+                    <span className="text-[11px] font-extrabold uppercase tracking-wide block text-[#065F46]">
+                      Costo Semanal
+                    </span>
+                    <span className="text-[10px] text-[#10B981]">
+                      Sin horas extraordinarias
+                    </span>
+                  </div>
+                </div>
+                <span className="text-xl font-extrabold text-[#10B981]">
+                  {formatMXN(0)}
+                </span>
+              </div>
+            )}
           </div>
         )}
 

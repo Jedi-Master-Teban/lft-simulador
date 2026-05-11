@@ -24,7 +24,7 @@ export function ScheduleGrid({ schedule, dailyHours, onChange }: Props) {
 
   return (
     <div className="overflow-x-auto -mx-1 px-1 pb-1">
-      <div className="flex gap-2 min-w-max">
+      <div className="flex gap-3 min-w-max">
         {DAYS_SHORT.map((label, i) => {
           const day = schedule[i];
           const active = isDayActive(day);
@@ -37,7 +37,7 @@ export function ScheduleGrid({ schedule, dailyHours, onChange }: Props) {
             })();
 
           return (
-            <div key={i} className="flex flex-col items-center gap-1.5 w-[72px]">
+            <div key={i} className="flex flex-col items-center gap-1.5 w-[100px]">
 
               {/* Day label */}
               <span
@@ -60,15 +60,15 @@ export function ScheduleGrid({ schedule, dailyHours, onChange }: Props) {
                   type="time"
                   value={day.start}
                   onChange={e => update(i, { start: e.target.value })}
-                  className="w-full text-center text-xs px-1 py-2 rounded-t-xl bg-transparent focus:outline-none"
+                  className="w-full text-center text-sm px-2 py-2 rounded-t-xl bg-transparent focus:outline-none"
                   style={{ color: active ? '#2D2D2D' : '#94A3B8' }}
                 />
-                <div className="border-t mx-1" style={{ borderColor: active ? '#E0F5FD' : '#E2E8F0' }} />
+                <div className="border-t mx-2" style={{ borderColor: active ? '#E0F5FD' : '#E2E8F0' }} />
                 <input
                   type="time"
                   value={day.end}
                   onChange={e => update(i, { end: e.target.value })}
-                  className="w-full text-center text-xs px-1 py-2 rounded-b-xl bg-transparent focus:outline-none"
+                  className="w-full text-center text-sm px-2 py-2 rounded-b-xl bg-transparent focus:outline-none"
                   style={{ color: active ? '#2D2D2D' : '#94A3B8' }}
                 />
               </div>
