@@ -70,7 +70,7 @@ function pageFooter(doc: jsPDF, pageNum: number, totalPages: number) {
   doc.setFontSize(7);
   text(doc, WHITE);
   doc.text(
-    `Pag. ${pageNum} / ${totalPages}  |  COPYRIGHT: uso prohibido sin autorizacion expresa de Catch Consulting, S.C.`,
+    `Pag. ${pageNum} / ${totalPages}  |  COPYRIGHT: uso prohibido sin autorización expresa de Catch Consulting, S.C.`,
     PAGE_W - M, y,
     { align: 'right' },
   );
@@ -103,18 +103,18 @@ export function generatePDF(state: AppState, results: CrewResult[]) {
   const bodyLines = [
     'Agradecemos que hayas utilizado el Simulador de Jornada Laboral',
     'de Catch Consulting. Los resultados a continuacion contienen',
-    'informacion de tu estatus de compliance con la Ley Federal del',
-    'Trabajo, la estimacion de horas extra y el valor por dichas horas,',
-    `ajustadas para el anno de tu simulacion. Tus resultados, ${empresa}:`,
+    'información de tu estatus de compliance con la Ley Federal del',
+    'Trabajo, la estimación de horas extra y el valor por dichas horas,',
+    `ajustadas para el año de tu simulación. Tus resultados, ${empresa}:`,
     '',
-    `Para el anno: ${firm.year}.`,
+    `Para el año: ${firm.year}.`,
     `Tu total de horas extra: ${formatHours(results.reduce((s, r) => s + r.overtimeHours, 0))}.`,
     `Costo semanal de dichas horas: ${formatMXN(results.reduce((s, r) => s + r.totalOTCost, 0))}.`,
     '',
     `Estatus LFT: "${results.every(r => r.isCompliant) ? 'EN CUMPLIMIENTO' : 'INCUMPLIMIENTO DETECTADO'}".`,
     '',
     'Te esperamos en una nueva oportunidad de capacitacion para estar',
-    'al tanto de los nuevos cambios en la regulacion laboral.',
+    'al tanto de los nuevos cambios en la regulación laboral.',
     '|siempre puedes contar con nosotros!',
   ];
 
@@ -152,7 +152,7 @@ export function generatePDF(state: AppState, results: CrewResult[]) {
   autoTable(doc, {
     startY: y,
     margin: { left: M, right: M },
-    head: [['Anno', 'Diurna', 'Mixta', 'Nocturna', 'Tope Dobles', 'Tope Triples']],
+    head: [['Año', 'Diurna', 'Mixta', 'Nocturna', 'Tope Dobles', 'Tope Triples']],
     body: ([2026, 2027, 2028, 2029, 2030] as const).map(yr => {
       const r = REFERENCE[yr];
       return [yr, `${r.Diurna}h`, `${r.Mixta}h`, `${r.Nocturna}h`, `${r.maxDouble}h`, `${r.maxTriple}h`];
@@ -216,7 +216,7 @@ export function generatePDF(state: AppState, results: CrewResult[]) {
 
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
-    doc.text(`Jornada ${r.effectiveShiftType}  |  ${crew.workers} trabajadores  |  Anno ${firm.year}`, M, 33);
+    doc.text(`Jornada ${r.effectiveShiftType}  |  ${crew.workers} trabajadores  |  Año ${firm.year}`, M, 33);
 
     // Schedule
     y = 40;
@@ -311,7 +311,7 @@ export function generatePDF(state: AppState, results: CrewResult[]) {
       doc.roundedRect(M, y, PAGE_W - M * 2, 9, 2, 2, 'F');
       doc.setFontSize(9);
       text(doc, [5, 95, 70] as [number, number, number]);
-      doc.text('[OK] Cumple con la jornada legal para el anno ' + firm.year, M + 4, y + 6);
+      doc.text('[OK] Cumple con la jornada legal para el año ' + firm.year, M + 4, y + 6);
     } else {
       autoTable(doc, {
         startY: y,
@@ -344,7 +344,7 @@ export function generatePDF(state: AppState, results: CrewResult[]) {
   doc.line(M, 32, PAGE_W - M, 32);
 
   const disclaimerLines = [
-    'Prohibido el uso o distribucion sin autorizacion expresa',
+    'Prohibido el uso o distribución sin autorización expresa',
     'de Catch Consulting, S.C.',
     '',
     'Este simulador es una herramienta informativa basada en la',
@@ -353,9 +353,9 @@ export function generatePDF(state: AppState, results: CrewResult[]) {
     'responsabilidad por decisiones tomadas con base en los',
     'resultados de este simulador.',
     '',
-    'Para informacion, contratacion o autorizacion de uso:',
+    'Para información, contratación o autorización de uso:',
     'Catch Consulting, S.C. — Desarrollo Organizacional | Recursos Humanos',
-    'informacion@catchconsulting.com.mx',
+    'información@catchconsulting.com.mx',
     'Tel. (477) 318 16 00',
     'G100 Business District, Suite 719, Puerto Interior, Silao, GTO.',
     'www.catchconsulting.com.mx',

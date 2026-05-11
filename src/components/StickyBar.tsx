@@ -50,7 +50,7 @@ export function StickyBar({ results, firm, headerRef }: Props) {
           >
             {allOk
               ? `Empresa en cumplimiento — LFT ${firm.year}`
-              : `${violating} tripulación${violating !== 1 ? 'es' : ''} con incumplimiento — LFT ${firm.year}`}
+              : `${violating} ${violating !== 1 ? 'tripulaciones' : 'tripulación'} con incumplimiento — LFT ${firm.year}`}
           </span>
         </div>
 
