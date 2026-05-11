@@ -8,8 +8,9 @@ export const DAYS_ES = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'S
 export const DAYS_SHORT = ['Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sa', 'Do'] as const;
 
 export interface DaySchedule {
-  start: string; // "HH:MM" or "" (rest day)
-  end: string;   // "HH:MM" or ""
+  start: string;        // "HH:MM"
+  end: string;          // "HH:MM"
+  rest?: boolean;       // explicit rest flag (undefined treated as false for backwards-compat)
 }
 
 export type WeekSchedule = [
@@ -20,8 +21,8 @@ export type WeekSchedule = [
 export interface Crew {
   id: string;
   nombre: string;
-  shiftType: ShiftType;      // used only when shiftOverride = true
-  shiftOverride: boolean;    // user manually set shiftType
+  shiftType: ShiftType;
+  shiftOverride: boolean;
   workers: number;
   schedule: WeekSchedule;
 }
@@ -39,14 +40,13 @@ export interface AppState {
 }
 
 // ── LFT Reference Table ────────────────────────────────────────────────────
-// Source: Arts. 60–68 LFT + Constitutional reform 2026–2030
 
 interface YearRef {
-  Diurna: number;   // max regular weekly hours for jornada diurna
-  Mixta: number;    // max regular weekly hours for jornada mixta
-  Nocturna: number; // max regular weekly hours for jornada nocturna
-  maxDouble: number; // max double-time (2×) hours per week — Art. 67
-  maxTriple: number; // max triple-time (3×) hours per week — Art. 68 (always 4)
+  Diurna: number;
+  Mixta: number;
+  Nocturna: number;
+  maxDouble: number;
+  maxTriple: number;
 }
 
 export const REFERENCE: Record<LFTYear, YearRef> = {
@@ -57,76 +57,60 @@ export const REFERENCE: Record<LFTYear, YearRef> = {
   2030: { Diurna: 40, Mixta: 40, Nocturna: 40, maxDouble: 12, maxTriple: 4 },
 };
 
-// Regular daily maximums by shift type — Art. 61 LFT
 export const DAILY_REGULAR_MAX: Record<ShiftType, number> = {
   Diurna:   8,
   Mixta:    7.5,
   Nocturna: 7,
 };
 
-export const MAX_DAILY_ABS = 12;          // Absolute daily max — Art. 68
-export const MAX_EXTRAORDINARY_DAYS = 4; // Max days with extraordinary shift — Art. 66
+export const MAX_DAILY_ABS = 12;
+export const MAX_EXTRAORDINARY_DAYS = 4;
 
-// ── Time helpers ───────────────────────────────────────────────────────────
+// ── Helpers ────────────────────────────────────────────────────────────────
 
-/** Convert "HH:MM" string to minutes since midnight */
+/** Whether a day should be counted as worked (not a rest day) */
+export function isDayActive(day: DaySchedule): boolean {
+  // rest flag takes priority; if undefined, fall back to empty-string detection
+  if (day.rest === true) return false;
+  if (day.rest === false) return true;
+  return Boolean(day.start && day.end); // backwards-compat for old localStorage data
+}
+
 export function timeToMinutes(t: string): number {
   if (!t) return 0;
   const [h, m] = t.split(':').map(Number);
   return (h || 0) * 60 + (m || 0);
 }
 
-/**
- * Hours worked in a single day.
- * Handles overnight shifts (end < start → shift crosses midnight).
- */
 export function getDayHours(day: DaySchedule): number {
-  if (!day.start || !day.end) return 0;
-  const start = timeToMinutes(day.start);
-  let end = timeToMinutes(day.end);
-  if (end <= start) end += 1440; // overnight: add 24 hours
-  return (end - start) / 60;
-}
-
-/**
- * Minutes of a shift that fall in the nocturna window (22:00–06:00).
- * Used for Art. 60 LFT shift-type classification.
- *
- * Extended-space representation: overnight shifts have endMin > 1440.
- * Nocturna sub-windows in this space:
- *   [0, 360]     → 00:00–06:00 (same day early morning)
- *   [1320, 1800] → 22:00 day-0 to 06:00 day-1
- */
-export function getNocturnaMinutes(day: DaySchedule): number {
+  if (!isDayActive(day)) return 0;
   if (!day.start || !day.end) return 0;
   const start = timeToMinutes(day.start);
   let end = timeToMinutes(day.end);
   if (end <= start) end += 1440;
+  return (end - start) / 60;
+}
 
+export function getNocturnaMinutes(day: DaySchedule): number {
+  if (!isDayActive(day)) return 0;
+  if (!day.start || !day.end) return 0;
+  const start = timeToMinutes(day.start);
+  let end = timeToMinutes(day.end);
+  if (end <= start) end += 1440;
   const ov = (s: number, e: number, ws: number, we: number) =>
     Math.max(0, Math.min(e, we) - Math.max(s, ws));
-
   return ov(start, end, 0, 360) + ov(start, end, 1320, 1800);
 }
 
-/**
- * Auto-detect shift type from a week's schedule per Art. 60 LFT.
- * Rule: if > 3.5 hours (210 min) of a shift fall in nocturna window → Nocturna.
- *       if any nocturna minutes but ≤ 3.5h              → Mixta.
- *       otherwise                                        → Diurna.
- * The strictest classification across all worked days wins.
- */
 export function detectShiftType(schedule: WeekSchedule): ShiftType {
   let hasNocturna = false;
   let hasMixta = false;
-
   for (const day of schedule) {
-    if (!day.start || !day.end) continue;
+    if (!isDayActive(day)) continue;
     const noc = getNocturnaMinutes(day);
     if (noc > 210) { hasNocturna = true; break; }
     if (noc > 0) hasMixta = true;
   }
-
   if (hasNocturna) return 'Nocturna';
   if (hasMixta) return 'Mixta';
   return 'Diurna';
@@ -143,16 +127,16 @@ export interface CrewResult {
   crewId: string;
   detectedShiftType: ShiftType;
   effectiveShiftType: ShiftType;
-  legalMaxHours: number;      // regular weekly max for this shift type & year
+  legalMaxHours: number;
   totalWeeklyHours: number;
   overtimeHours: number;
-  doubleHours: number;        // overtime paid at 2× (horas dobles)
-  tripleHours: number;        // overtime paid at 3× (horas triples)
+  doubleHours: number;
+  tripleHours: number;
   maxDailyHours: number;
   daysWithOvertime: number;
-  dailyHours: number[];       // 7 values, Mon–Sun
-  doubleCost: number;         // MXN weekly cost of double-time
-  tripleCost: number;         // MXN weekly cost of triple-time
+  dailyHours: number[];
+  doubleCost: number;
+  tripleCost: number;
   totalOTCost: number;
   violations: Violation[];
   isCompliant: boolean;
@@ -172,7 +156,6 @@ export function calculateCrewResult(crew: Crew, firm: FirmConfig): CrewResult {
   const maxDailyHours = Math.max(...dailyHours, 0);
   const daysWithOvertime = dailyHours.filter(h => h > dailyMax).length;
 
-  // Overtime breakdown — Arts. 67–68 LFT
   const overtimeHours = Math.max(0, totalWeeklyHours - legalMaxHours);
   const doubleHours = Math.min(overtimeHours, ref.maxDouble);
   const tripleHours =
@@ -180,13 +163,11 @@ export function calculateCrewResult(crew: Crew, firm: FirmConfig): CrewResult {
       ? Math.min(overtimeHours - ref.maxDouble, ref.maxTriple)
       : 0;
 
-  // Cost calculation: (salario_diario / 8) × hours × multiplier × workers
   const hourlyRate = firm.salarioDiario / 8;
   const doubleCost = hourlyRate * doubleHours * 2 * crew.workers;
   const tripleCost = hourlyRate * tripleHours * 3 * crew.workers;
   const totalOTCost = doubleCost + tripleCost;
 
-  // Compliance checks
   const totalMaxHours = legalMaxHours + ref.maxDouble + ref.maxTriple;
   const violations: Violation[] = [];
 
@@ -196,25 +177,22 @@ export function calculateCrewResult(crew: Crew, firm: FirmConfig): CrewResult {
       description: `Jornada semanal (${totalWeeklyHours.toFixed(1)}h) excede el máximo de ${totalMaxHours}h para ${effectiveShiftType.toLowerCase()} en ${firm.year}.`,
     });
   }
-
   if (maxDailyHours > MAX_DAILY_ABS) {
     violations.push({
       article: 'Art. 68',
       description: `Jornada diaria máxima (${maxDailyHours.toFixed(1)}h) excede el límite absoluto de ${MAX_DAILY_ABS}h.`,
     });
   }
-
   if (daysWithOvertime > MAX_EXTRAORDINARY_DAYS) {
     violations.push({
       article: 'Art. 66',
       description: `${daysWithOvertime} días con jornada extraordinaria; el máximo permitido es ${MAX_EXTRAORDINARY_DAYS} días por semana.`,
     });
   }
-
   if (tripleHours > ref.maxTriple) {
     violations.push({
       article: 'Art. 68',
-      description: `Horas triples (${tripleHours.toFixed(1)}h) exceden el máximo legal de ${ref.maxTriple}h semanales.`,
+      description: `Horas triples (${tripleHours.toFixed(1)}h) exceden el máximo de ${ref.maxTriple}h semanales.`,
     });
   }
 
@@ -238,23 +216,25 @@ export function calculateCrewResult(crew: Crew, firm: FirmConfig): CrewResult {
   };
 }
 
-// ── Factory functions ──────────────────────────────────────────────────────
+// ── Factories ──────────────────────────────────────────────────────────────
+
+const DEFAULT_TIMES = { start: '07:00', end: '15:00' };
 
 export function createDefaultCrew(index: number): Crew {
   return {
     id: crypto.randomUUID(),
-    nombre: `Tripulación ${String.fromCharCode(65 + index)}`, // A, B, C…
+    nombre: `Tripulación ${String.fromCharCode(65 + index)}`,
     shiftType: 'Diurna',
     shiftOverride: false,
     workers: 10,
     schedule: [
-      { start: '07:00', end: '15:00' }, // Lunes
-      { start: '07:00', end: '15:00' }, // Martes
-      { start: '07:00', end: '15:00' }, // Miércoles
-      { start: '07:00', end: '15:00' }, // Jueves
-      { start: '07:00', end: '15:00' }, // Viernes
-      { start: '07:00', end: '15:00' }, // Sábado
-      { start: '', end: '' },            // Domingo (descanso)
+      { ...DEFAULT_TIMES, rest: false }, // Lunes
+      { ...DEFAULT_TIMES, rest: false }, // Martes
+      { ...DEFAULT_TIMES, rest: false }, // Miércoles
+      { ...DEFAULT_TIMES, rest: false }, // Jueves
+      { ...DEFAULT_TIMES, rest: false }, // Viernes
+      { ...DEFAULT_TIMES, rest: false }, // Sábado
+      { ...DEFAULT_TIMES, rest: true  }, // Domingo — pre-filled but toggled off
     ],
   };
 }
@@ -267,20 +247,15 @@ export const DEFAULT_FIRM: FirmConfig = {
 };
 
 export function createDefaultState(): AppState {
-  return {
-    firm: DEFAULT_FIRM,
-    crews: [createDefaultCrew(0), createDefaultCrew(1)],
-  };
+  return { firm: DEFAULT_FIRM, crews: [createDefaultCrew(0), createDefaultCrew(1)] };
 }
 
-// ── Formatting helpers ─────────────────────────────────────────────────────
+// ── Formatters ─────────────────────────────────────────────────────────────
 
 export function formatMXN(amount: number): string {
   return new Intl.NumberFormat('es-MX', {
-    style: 'currency',
-    currency: 'MXN',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
+    style: 'currency', currency: 'MXN',
+    minimumFractionDigits: 0, maximumFractionDigits: 0,
   }).format(amount);
 }
 
@@ -288,6 +263,5 @@ export function formatHours(h: number): string {
   if (h === 0) return '0h';
   const whole = Math.floor(h);
   const mins = Math.round((h - whole) * 60);
-  if (mins === 0) return `${whole}h`;
-  return `${whole}h ${mins}m`;
+  return mins === 0 ? `${whole}h` : `${whole}h ${mins}m`;
 }

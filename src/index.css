@@ -1,9 +1,21 @@
 @import "tailwindcss";
 
-/* Custom input[type=time] styling for cleaner look */
-input[type="time"]::-webkit-calendar-picker-indicator {
-  display: none;
+/* ── Catch Consulting brand tokens ──────────────────────────────────────── */
+:root {
+  --cyan:       #1BBBEE;
+  --blue:       #2870B5;
+  --charcoal:   #2D2D2D;
+  --gray:       #555555;
+  --light-gray: #94A3B8;
+  --border:     #E2E8F0;
+  --page-bg:    #F8FAFC;
+  --cyan-tint:  #F0F9FF;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
-input[type="time"] {
-  -webkit-appearance: none;
-}
+
+/* ── Native time-picker cleanup ─────────────────────────────────────────── */
+input[type="time"]::-webkit-calendar-picker-indicator { display: none; }
+input[type="time"] { -webkit-appearance: none; }
+
+/* ── Smooth scrollbar ────────────────────────────────────────────────────── */
+* { scrollbar-width: thin; scrollbar-color: #CBD5E1 transparent; }

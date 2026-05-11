@@ -1,0 +1,502 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║   CATCH CONSULTING — SIMULADOR DE JORNADA LABORAL                          ║
+║   Design Brief · AI Prompt · Style Specification                            ║
+║   v3 — Use this file as a prompt in Google Stitch or any AI design tool     ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION 1 — PRODUCT OVERVIEW
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Name          : Simulador de Jornada Laboral
+Owned by      : Catch Consulting, S.C. — HR Consultancy & Organizational Development
+Website       : www.catchconsulting.com.mx
+Context       : Delivered as part of Catch's "Taller 40 Horas" training workshop
+
+What it does  :
+  A B2B compliance tool for Mexican manufacturing companies. HR managers enter
+  their factory crew schedules (shift start/end times for each day of the week)
+  and the tool tells them whether they comply with Mexico's Federal Labor Law (LFT)
+  — specifically the constitutional reform reducing the maximum workweek from 48h
+  to 40h between 2026 and 2030.
+
+  The tool calculates regular hours, "horas dobles" (2× overtime), and
+  "horas triples" (3× overtime), checks four compliance rules per crew, and
+  estimates the weekly overtime cost per crew and for the whole company.
+
+Who uses it   :
+  HR managers and labor compliance specialists at tier-1 automotive and
+  industrial manufacturing companies in Mexico.
+  Representative clients: BMW, Honda, Toyota, Bosch, Continental, Valeo,
+  Metalsa, Nemak, Lear, ZF, Magna, BorgWarner, Johnson Controls.
+
+Stakes        :
+  Non-compliance means real labor violations and fines. The tool is used to
+  plan workforce scheduling changes before the legal deadlines hit.
+
+Tech stack    :
+  React 19 + Vite + TypeScript + Tailwind CSS v4
+  lucide-react (icons), jsPDF + jspdf-autotable (PDF export), SheetJS (Excel export)
+  Single-page app, no router, data persisted in localStorage.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION 2 — BRAND IDENTITY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Company       : Catch Consulting, S.C.
+Tagline       : Desarrollo Organizacional | Recursos Humanos
+
+LOGO:
+  File: LOGO.png (transparent background, horizontal layout)
+  The logo has TWO blues — this is crucial:
+    - Large "C" character + left arc of the "h"  →  Sky Cyan    #1BBBEE
+    - Right stroke of the "h" in "Catch"          →  Steel Blue  #2870B5
+    - "atch" text                                  →  Charcoal    #2D2D2D
+    - "Consulting" text                            →  Gray        #555555
+  Never filter, invert, or recolor the logo.
+  Always show it at its natural colors on a white or very light background.
+
+FULL COLOR PALETTE:
+
+  Primary (Sky Cyan)    #1BBBEE   — main CTA buttons, active states, accent borders,
+                                    section headings, progress bar green zone labels
+  Deep Blue             #2870B5   — secondary buttons, deep accents, table headers,
+                                    hover states, links
+  Charcoal              #2D2D2D   — headings, important text (NOT pure black)
+  Gray                  #555555   — body text, labels
+  Light Gray            #94A3B8   — muted text, placeholders, disabled states
+  Border Gray           #E2E8F0   — card borders, dividers
+  Page Background       #F8FAFC   — app background (cool near-white)
+  Card Background       #FFFFFF   — all cards, inputs, table rows
+  Light Cyan Tint       #F0F9FF   — section backgrounds, alternating rows
+  Pale Cyan Tint        #E0F5FD   — hover backgrounds, subtle highlights
+
+  Semantic:
+  Success Green         #10B981   — compliance / CUMPLE status
+  Success Light         #D1FAE5   — success banner background
+  Warning Amber         #F59E0B   — approaching overtime limit
+  Warning Light         #FEF3C7   — warning banner background
+  Error Red             #EF4444   — violation / INCUMPLIMIENTO
+  Error Light           #FEE2E2   — error banner background
+
+FORBIDDEN:
+  - Pure black (#000000) or near-black (#111111, #121212) backgrounds
+  - Saturated neon colors outside the palette
+  - Serif or display fonts
+  - Heavy drop shadows (max box-shadow blur: 12px, opacity: 12%)
+  - Full-width dark headers or navbars that feel like native apps
+  - Marketing-style hero gradients or large background images
+
+TYPOGRAPHY:
+  Font family : Inter (Google Fonts) — fallback: system-ui, sans-serif
+  Import URL  : https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;0,800&display=swap
+
+  Scale:
+    Stat value  : 24px  weight 800  color varies by state
+    App title   : 20px  weight 800  #2D2D2D
+    Card title  : 16px  weight 700  #2D2D2D
+    Body        : 14px  weight 400  #555555
+    Label       : 12px  weight 600  #94A3B8
+    Micro label : 11px  weight 700  uppercase  letter-spacing 0.12em  #1BBBEE
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION 3 — COMPONENT INVENTORY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+The app is a single scrollable page. From top to bottom:
+
+
+── 3A. STICKY COMPLIANCE BAR ──────────────────────────────────────────────────
+
+  A slim bar (40px tall) pinned to the top of the viewport while scrolling.
+  Only visible after scrolling past the main header.
+  Subtle backdrop blur (blur: 8px), no hard shadow.
+
+  STATE — All crews compliant:
+    Background : #D1FAE5 (success light green)
+    Left border: 4px solid #10B981
+    Text       : "Empresa en cumplimiento — LFT [year]" + total OT cost on the right
+    Icon       : small green checkmark
+
+  STATE — Has violations:
+    Background : #FEE2E2 (error light red)
+    Left border: 4px solid #EF4444
+    Text       : "[N] tripulación(es) con incumplimiento" + total OT cost on the right
+    Icon       : small red warning triangle
+
+
+── 3B. APP HEADER ─────────────────────────────────────────────────────────────
+
+  Background   : #FFFFFF (pure white)
+  Top accent   : 4px horizontal bar at very top, full width, color #1BBBEE
+  Bottom border: 1px solid #E2E8F0
+  No background images or gradients.
+
+  Top row (flex, space-between):
+    Left:
+      - Optional app icon (40×40px, hidden via onError if /app-icon.png not found)
+      - LOGO.png at natural colors, ~130px wide
+      - Vertical divider (1px, #E2E8F0, 28px tall)
+      - App title: "Simulador de Jornada Laboral" (20px bold, #2D2D2D)
+      - Subtitle: "Ley Federal del Trabajo · Reforma 2026–2030" (12px, #1BBBEE)
+    Right:
+      - Analysis date: "Análisis al [date]" (12px, #94A3B8)
+
+  Settings row below (light gray strip, #F8FAFC, 1px top/bottom border #E2E8F0):
+    4 inputs in a grid:
+      [Razón Social — spans 2 cols] [Planta / Sitio] [Año ▼] [$Salario]
+    Input style: white bg, 1px #E2E8F0 border, 8px radius, 14px Inter
+    Input focus: 2px ring #1BBBEE, border becomes #1BBBEE
+    Labels: 11px bold uppercase #94A3B8 above each input
+
+
+── 3C. REFERENCE TABLE ────────────────────────────────────────────────────────
+
+  White card, 1px #E2E8F0 border, 16px radius, soft shadow.
+
+  Collapsed header: book icon + "Tabla de Referencia LFT — Jornada Legal por Año y Turno"
+  Toggle chevron on the right.
+  Hover background: #F8FAFC.
+
+  Expanded table:
+    Header row: #2870B5 background (deep blue), white bold text, 11px uppercase
+    Active year row: #E0F5FD background (pale cyan tint), bold charcoal text
+                     + small "activo" badge (#1BBBEE bg, white text, 10px bold)
+    Other rows: alternating white / #F8FAFC
+    All text: 13px, #555555
+    Borders: 1px #E2E8F0
+
+  Footer note: 12px italic #94A3B8 explaining dobles/triples law references.
+
+
+── 3D. CREWS TOOLBAR ──────────────────────────────────────────────────────────
+
+  Full-width row, no background (inherits page bg).
+  Left: "TRIPULACIONES (N)" micro label in #1BBBEE
+  Right (flex, gap 8px):
+    Export label: "Exportar" 11px #94A3B8
+    PDF button  : white bg, 1.5px #1BBBEE border, #1BBBEE text, 8px radius
+                  hover: #1BBBEE bg, white text
+    Excel button: white bg, 1.5px #10B981 border, #10B981 text, 8px radius
+                  hover: #10B981 bg, white text
+    Divider: 1px vertical #E2E8F0
+    Add crew button: #1BBBEE bg, white text, bold, 10px radius, + icon
+                     hover: #2870B5 bg
+
+
+── 3E. CREW CARD ───────────────────────────────────────────────────────────── ★
+
+  The most important component. White background, 16px border-radius.
+  Box shadow: 0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.04)
+  Left border: 4px solid — cyan (#1BBBEE) when compliant, red (#EF4444) when violation
+  Top border: 1px solid — #E2E8F0 always
+
+  ┌─ CARD HEADER ────────────────────────────────────────────────────────────┐
+  │                                                                          │
+  │  [●] [Crew Name — editable input]                   [🗑 delete icon]    │
+  │                                                                          │
+  │       [☀️ Diurna] (auto-detectado) [cambiar link]   [👤 10 trabajadores] │
+  │                                                                          │
+  └──────────────────────────────────────────────────────────────────────────┘
+
+  Status dot (●):
+    Cyan (#1BBBEE) with cyan glow ring → compliant
+    Red (#EF4444) with red glow ring  → violation
+
+  Crew name: transparent input, 16px bold #2D2D2D, underlines on focus
+
+  Shift type pills:
+    Diurna   : #FFFBEB bg, #92400E text, #FDE68A border, "☀️ Diurna"
+    Mixta    : #F5F3FF bg, #5B21B6 text, #DDD6FE border, "🌗 Mixta"
+    Nocturna : #EFF6FF bg, #1E3A8A text, #BFDBFE border, "🌙 Nocturna"
+
+  ┌─ COMPLIANCE PROGRESS BAR ────────────────────────────────────────────────┐
+  │                                                                          │
+  │  Thin (12px) segmented bar showing hours used vs. legal limits:          │
+  │                                                                          │
+  │  [═══ GREEN ZONE ════|═══ AMBER ZONE ═══|══ RED ZONE ══]                │
+  │   0h          Legal max         +doubles max    Total max                │
+  │               (e.g. 48h)        (e.g. 57h)      (e.g. 61h)              │
+  │                                                                          │
+  │  The filled portion tracks current hours and changes color by zone.      │
+  │  Three tick marks at zone boundaries with hour labels below.             │
+  │  Current value shown as a small bubble above the fill endpoint.          │
+  │                                                                          │
+  └──────────────────────────────────────────────────────────────────────────┘
+
+  Progress bar zones:
+    Background colors (unfilled): #D1FAE5 / #FEF3C7 / #FEE2E2
+    Fill colors (filled):         #10B981 / #F59E0B / #EF4444
+    Zone transitions are instant (no CSS gradient on the zones)
+
+  ┌─ SCHEDULE GRID (collapsible, default open) ──────────────────────────────┐
+  │                                                                          │
+  │  Section toggle: "HORARIO SEMANAL" in #1BBBEE micro label + chevron     │
+  │                                                                          │
+  │  7 columns: Lu · Ma · Mi · Ju · Vi · Sa · Do (ALL identical in look)    │
+  │                                                                          │
+  │  Each day cell:                                                          │
+  │    Day label (11px bold uppercase)                                       │
+  │      → Active: #1BBBEE    → Rest: #94A3B8                               │
+  │                                                                          │
+  │    Time input card (white bg, rounded-xl):                               │
+  │      → Active: 2px solid #1BBBEE border, soft cyan glow                 │
+  │      → Rest  : 1px solid #E2E8F0, #F8FAFC bg                            │
+  │    [HH:MM] start input                                                   │
+  │    ─────── thin divider ───────                                          │
+  │    [HH:MM] end input                                                     │
+  │                                                                          │
+  │    Hours badge: "8h" (bold, #2D2D2D) or "—" (gray) if rest             │
+  │    "+1 día" badge: small indigo pill for overnight shifts                │
+  │                                                                          │
+  │    REST TOGGLE: small pill toggle switch below the time card             │
+  │      ON (day is rest): gray track, gray knob, label "descanso"          │
+  │      OFF (day is active): cyan track, white knob, no label               │
+  │      One click toggles; pre-filled times are PRESERVED when toggling.   │
+  │                                                                          │
+  └──────────────────────────────────────────────────────────────────────────┘
+
+  ┌─ RESULTS ROW ────────────────────────────────────────────────────────────┐
+  │                                                                          │
+  │  4 stat boxes side by side:                                              │
+  │  [Total semanal] [Tiempo extra] [Horas dobles 2×] [Horas triples 3×]   │
+  │                                                                          │
+  │  Each box: small gray label above, LARGE bold value, small note below   │
+  │  Color coding:                                                           │
+  │    Zero overtime → value in #2D2D2D                                     │
+  │    Dobles active → value in #F59E0B (amber)                             │
+  │    Triples active → value in #EF4444 (red)                              │
+  │    Total exceeds legal → total in #EF4444                               │
+  │                                                                          │
+  └──────────────────────────────────────────────────────────────────────────┘
+
+  ┌─ COST STRIP ─────────────────────────────────────────────────────────────┐
+  │  #F8FAFC bg, 1px #E2E8F0 border, 12px radius                            │
+  │  "Costo dobles: $X,XXX" · "Costo triples: $X,XXX" · "Total: $XX,XXX"   │
+  │  Total value is largest and rightmost (20px bold #2D2D2D)               │
+  └──────────────────────────────────────────────────────────────────────────┘
+
+  ┌─ COMPLIANCE BANNER ──────────────────────────────────────────────────────┐
+  │  COMPLIANT:  #D1FAE5 bg, #10B981 left-border, checkmark icon            │
+  │              "Cumple con la jornada legal para [year]"                   │
+  │                                                                          │
+  │  VIOLATION:  One red card per violation, #FEE2E2 bg, #EF4444 border     │
+  │              Bold article citation (e.g. "Art. 68") + description text  │
+  └──────────────────────────────────────────────────────────────────────────┘
+
+
+── 3F. SUMMARY PANEL ──────────────────────────────────────────────────────────
+
+  White card with 16px radius, soft shadow, 2px border.
+  Border: #1BBBEE when all compliant, #EF4444 when any violation.
+
+  Header strip (NOT black — use brand colors):
+    All compliant : #1BBBEE bg, white text
+    Has violations: #2870B5 bg (deep blue), white text
+    Text: "Empresa en cumplimiento — LFT [year]" or "[N] tripulación(es) con incumplimiento"
+    Right side: firm name · plant name (if provided)
+
+  4-stat grid below header (white bg, divided by 1px #E2E8F0):
+    [👤 Trabajadores] [✓ En cumplimiento] [✗ Con incumplimiento] [📈 Costo TE semanal]
+    Each tile: icon + micro label + large bold value + small subtext
+
+  Per-crew breakdown list (#F8FAFC bg):
+    One row per crew: status dot · name · shift type · hours · OT · cost · status badge
+    Compliant badge: #D1FAE5 bg, #10B981 text
+    Violation badge: #FEE2E2 bg, #EF4444 text
+
+
+── 3G. FOOTER / DISCLAIMER ────────────────────────────────────────────────────
+
+  Background: #2D2D2D (charcoal — the darkest allowed)
+  16px radius at corners, NOT a full-bleed footer.
+  Text (white / #1BBBEE / dimmed white):
+    Line 1: "® Prohibido el uso o distribución sin autorización expresa de Catch Consulting, S.C." (#1BBBEE bold)
+    Line 2: "www.catchconsulting.com.mx · Simulador de Jornada Laboral · Rev. [date]" (white/50)
+    Line 3: Tiny legal disclaimer about informational use only (white/25)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION 4 — STATE DESIGNS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+CREW CARD STATES:
+
+  Compliant:
+    Left border: 4px #1BBBEE
+    Status dot : #1BBBEE with 0 0 0 3px rgba(27,187,238,0.2) ring
+    Progress bar: green fill, within legal zone
+    Compliance banner: green
+
+  In violation:
+    Left border: 4px #EF4444
+    Card header bg: #FFF5F5 tint
+    Status dot : #EF4444 with red glow ring
+    Progress bar: fill overflows into red zone
+    Red violation cards below results
+
+  Partially overtime (hours in double zone, not triple):
+    Left border: 4px #F59E0B (amber)
+    Status dot : amber
+    Progress bar: amber fill zone
+
+PROGRESS BAR FILL STATES:
+  0 to legalMax      → green fill  (#10B981)
+  legalMax to doubleEnd → amber fill (#F59E0B)
+  doubleEnd to totalMax → red fill  (#EF4444)
+  > totalMax         → full red bar + pulsing warning
+
+DAY CELL STATES:
+  Active (rest=false, has times):
+    Border: 2px #1BBBEE   |  Day label: #1BBBEE   |  Toggle knob: right/cyan
+  Rest (rest=true):
+    Border: 1px #E2E8F0   |  Bg: #F8FAFC  |  Day label: #94A3B8  |  Toggle: left/gray
+  Overnight (end < start):
+    Same as active + small "#EEF2FF / #6366F1" indigo "+1 día" badge
+
+EXPORT BUTTONS:
+  Idle   : white bg, colored border + text
+  Hover  : colored bg, dark text, 100ms ease
+  Loading: spinner replaces icon, opacity 70%, cursor not-allowed
+
+YEAR SELECTOR (active year highlighted):
+  In Reference Table: pale cyan row (#E0F5FD) + "activo" badge
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION 5 — TYPOGRAPHY SCALE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Font       : Inter (Google Fonts), weights 400/500/600/700/800
+Fallback   : system-ui, -apple-system, sans-serif
+
+Usage map:
+  App header title   24px  800  #2D2D2D
+  Card title / name  16px  700  #2D2D2D
+  Stat value         24px  800  varies by state
+  Section micro-head 11px  700  uppercase  tracking 0.12em  #1BBBEE
+  Body text          14px  400  #555555
+  Input text         14px  400  #2D2D2D
+  Table cell         13px  400  #555555
+  Table header       11px  700  uppercase  tracking 0.08em
+  Label above input  11px  600  uppercase  tracking 0.10em  #94A3B8
+  Subtext / note     11px  400  #94A3B8
+  Compliance article 11px  700  uppercase  tracking 0.10em  (red when violation)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION 6 — SPACING & LAYOUT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Max content width : 1280px (centered, 24px side padding on mobile)
+Page padding      : 24px horizontal, 24px vertical
+Card gap          : 16px between crew cards
+Inner card padding: 20px (16px on mobile)
+Border radius     : 16px for cards, 12px for large buttons, 8px for small inputs/badges
+Input height      : 36px (compact, enterprise feel)
+
+Shadows (only two levels — keep it subtle):
+  Card shadow : 0 1px 3px rgba(0,0,0,0.07), 0 4px 12px rgba(0,0,0,0.04)
+  Hover/focus : 0 0 0 3px rgba(27,187,238,0.15)
+
+Transitions   : all interactive elements 150ms ease
+  Color transitions: 150ms
+  Height/expand  : 200ms ease-in-out
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION 7 — WHAT NOT TO DO
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  ✗ No pure black (#000 or near-black) backgrounds anywhere
+  ✗ No dark navbars or headers that feel like native mobile apps
+  ✗ No heavy box shadows (no 20px+ blurs, no layered shadows)
+  ✗ No background images in the header (no sunrise, no photos, no textures)
+  ✗ No full-bleed gradient heroes
+  ✗ No animated gradients or loading skeletons (keep it snappy and enterprise)
+  ✗ No color outside the defined palette
+  ✗ No serif, display, or handwriting fonts
+  ✗ No dense tables without breathing room (min row height: 40px)
+  ✗ No more than 3 typographic weights per section
+  ✗ No "startup app" feel — this is an enterprise compliance tool
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION 8 — SHORT STITCH PROMPT  ← COPY/PASTE THIS INTO GOOGLE STITCH
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Design a professional B2B compliance dashboard for Catch Consulting, a Mexican
+HR consultancy (www.catchconsulting.com.mx). The tool is called "Simulador de
+Jornada Laboral" and verifies if factory crews comply with Mexico's Federal
+Labor Law workweek limits (2026–2030 progressive reform).
+
+Brand colors: sky cyan #1BBBEE (primary), steel blue #2870B5 (secondary),
+charcoal #2D2D2D (text), gray #555555 (body), white #FFFFFF (cards/bg).
+No black backgrounds. Inter font, weights 400–800.
+
+The page layout from top to bottom:
+1. A 40px sticky bar pinned to the top during scroll — shows overall compliance
+   status (green when OK, red when violations, with total overtime cost).
+2. A white header with 4px cyan top accent, the Catch Consulting logo on the
+   left (horizontal, full color), app title "Simulador de Jornada Laboral" +
+   cyan subtitle, and a light-gray settings strip with 4 inputs: company name,
+   plant, year selector (2026–2030), daily salary.
+3. A collapsible reference table card showing legal hour limits by year/shift.
+4. A toolbar row with PDF + Excel export buttons and an "Agregar tripulación" CTA.
+5. One or more "Crew Cards" — the main component: white card with a colored
+   left border (cyan=OK, red=violation), crew name (editable), shift type badge,
+   a 3-zone color progress bar (green/amber/red showing hours vs. legal limits
+   with tick marks), a 7-column weekly schedule grid where each day has start/end
+   time inputs and a rest-day toggle switch, then stat boxes for
+   total/overtime/double/triple hours, a cost strip, and a compliance banner.
+6. A summary panel below all crews with a header (cyan when all OK, steel blue
+   when violations), 4 stat tiles, and a per-crew breakdown list.
+7. A charcoal footer with the Catch Consulting copyright disclaimer.
+
+Style: Clean enterprise SaaS, generous whitespace, subtle card shadows, no dark
+backgrounds except the footer. Think Personio meets Workday — professional,
+data-forward, calm blues and whites, with cyan as the energetic accent.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION 9 — PDF REPORT DESIGN GUIDE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+The PDF export matches the Catch Consulting branded report format:
+
+Full-bleed cyan background (#1BBBEE) on all pages
+White text throughout
+Large decorative "C" watermark top-right corner (brand element)
+Diagonal slash accent on the right edge (lighter/darker cyan)
+Catch Consulting logo bottom-left on every page
+Copyright footer bottom-right: small white text
+
+PAGE 1 — COVER / SUMMARY:
+  Large white title: "Taller Reducción de Jornada"
+  Large white subtitle: "40 horas"
+  White body text: greeting + key results filled in (company, year,
+    total extras, total cost, compliance status)
+  Template-variable style: {Empresa}, {Año}, {TotalExtras}, {Costo}, {Estatus}
+
+PAGE 2+ — DETAILED RESULTS:
+  Section title: "Tus resultados en detalle" (white bold)
+  Reference table: "La Tabla de Referencia" — white cells, cyan text in
+    headers, thin white borders
+  Headcount matrix: "La Matriz de tu Headcount" — per-crew data table,
+    white cells, cyan bold column headers, thin white borders
+  Compliance notes per crew: article citations and status
+
+ALL PAGES:
+  Never use tables with dark backgrounds inside the PDF
+  Table cell text: #1BBBEE (cyan) for headers, #2D2D2D (dark) for data rows
+  No page has a white background — always full cyan
+  Font: Helvetica (jsPDF built-in), no Unicode special chars (use ASCII only)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+END OF DESIGN BRIEF
+Generated for: Catch Consulting, S.C. — Simulador de Jornada Laboral v3
+www.catchconsulting.com.mx
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
