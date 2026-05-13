@@ -1,5 +1,11 @@
 # Simulador de Jornada Laboral — Catch Consulting, S.C.
 
+> **Checkpoint — Versión MVP · 13 de mayo de 2026**
+> Estado del repositorio guardado como punto de referencia antes de aplicar mejoras iterativas.
+
+---
+
+
 > ® Prohibido el uso o distribución sin autorización expresa de **Catch Consulting, S.C.**
 > www.catchconsulting.com.mx
 
