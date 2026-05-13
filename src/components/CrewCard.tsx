@@ -386,10 +386,26 @@ function ComplianceBar({ totalHours, legalMax, doubleEnd, totalMax }: {
           {doubleEnd}h
         </span>
 
-        {/* Total max — yellow/red boundary, hard right */}
-        <span className="absolute right-0 text-[9px] font-bold text-[#F59E0B]">
-          {totalMax}h
-        </span>
+        {/* Total max — moves left when bar extends beyond it */}
+        {totalHours > totalMax ? (
+          <span
+            className="absolute -translate-x-1/2 text-[9px] font-bold text-[#F59E0B]"
+            style={{ left: `${blueW + greenW + amberW}%` }}
+          >
+            {totalMax}h
+          </span>
+        ) : (
+          <span className="absolute right-0 text-[9px] font-bold text-[#F59E0B]">
+            {totalMax}h
+          </span>
+        )}
+
+        {/* Actual hours at the right edge — only visible when exceeding totalMax */}
+        {totalHours > totalMax && (
+          <span className="absolute right-0 text-[9px] font-bold text-[#EF4444]">
+            {totalHours % 1 === 0 ? totalHours : totalHours.toFixed(1)}h
+          </span>
+        )}
       </div>
 
     </div>
