@@ -1,7 +1,7 @@
 import { useRef } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, RotateCcw } from 'lucide-react';
 import { useLocalStorage } from './hooks/useLocalStorage';
-import { calculateCrewResult, createDefaultCrew, createDefaultState } from './data/lft';
+import { calculateCrewResult, createDefaultCrew, createDefaultSchedule, createDefaultState } from './data/lft';
 import type { AppState, Crew } from './data/lft';
 import { FirmHeader } from './components/FirmHeader';
 import { ReferenceTable } from './components/ReferenceTable';
@@ -29,6 +29,12 @@ export default function App() {
   const deleteCrew = (id: string) =>
     setState(s => ({ ...s, crews: s.crews.filter(c => c.id !== id) }));
 
+  const resetAllSchedules = () =>
+    setState(s => ({
+      ...s,
+      crews: s.crews.map(c => ({ ...c, schedule: createDefaultSchedule() })),
+    }));
+
   const results = crews.map(c => calculateCrewResult(c, firm));
 
   return (
@@ -54,6 +60,19 @@ export default function App() {
           <div className="flex items-center gap-3 flex-wrap">
             <ExportButtons state={state} results={results} />
             <div className="w-px h-5 bg-[#E2E8F0]" />
+            {crews.length > 0 && (
+              <button
+                onClick={resetAllSchedules}
+                title="Restablecer todos los horarios al valor por defecto (Lun–Sáb 07:00–15:00)"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-bold transition-colors shadow-sm"
+                style={{ background: '#F1F5F9', color: '#64748B', border: '1px solid #E2E8F0' }}
+                onMouseOver={e => { (e.currentTarget as HTMLButtonElement).style.background = '#FEE2E2'; (e.currentTarget as HTMLButtonElement).style.color = '#EF4444'; }}
+                onMouseOut={e => { (e.currentTarget as HTMLButtonElement).style.background = '#F1F5F9'; (e.currentTarget as HTMLButtonElement).style.color = '#64748B'; }}
+              >
+                <RotateCcw className="w-4 h-4" />
+                Resetear horarios
+              </button>
+            )}
             <button
               onClick={addCrew}
               className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-bold text-white transition-colors shadow-sm"

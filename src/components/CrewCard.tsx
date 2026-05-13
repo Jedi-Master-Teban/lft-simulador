@@ -26,14 +26,15 @@ export function CrewCard({ crew, result, firm, onUpdate, onDelete }: Props) {
   const { effectiveShiftType, detectedShiftType, isCompliant, violations, legalMaxHours, totalWeeklyHours } = result;
   const shift = SHIFT_STYLE[effectiveShiftType];
 
-  // Amber state: in double-time zone (OT but not yet violation)
+  // 4-state colour model: blue → green → yellow → red
   const doubleEnd = legalMaxHours + ref.maxDouble;
   const totalMax = legalMaxHours + ref.maxDouble + ref.maxTriple;
-  const isAmber = totalWeeklyHours > legalMaxHours && totalWeeklyHours <= doubleEnd;
-  const isRed = totalWeeklyHours > doubleEnd;
+  const isGreen = totalWeeklyHours > legalMaxHours && totalWeeklyHours <= doubleEnd;  // with extras (double-time)
+  const isAmber = totalWeeklyHours > doubleEnd && totalWeeklyHours <= totalMax;        // near limit (triple-time)
+  const isRed   = totalWeeklyHours > totalMax;                                         // exceeds all permitted
 
-  const borderColor = isRed || !isCompliant ? '#EF4444' : isAmber ? '#F59E0B' : '#1BBBEE';
-  const dotColor = isRed || !isCompliant ? '#EF4444' : isAmber ? '#F59E0B' : '#1BBBEE';
+  const borderColor = isRed || !isCompliant ? '#EF4444' : isAmber ? '#F59E0B' : isGreen ? '#10B981' : '#3B82F6';
+  const dotColor    = borderColor;
 
   return (
     <div
@@ -296,21 +297,31 @@ export function CrewCard({ crew, result, firm, onUpdate, onDelete }: Props) {
 function ComplianceBar({ totalHours, legalMax, doubleEnd, totalMax }: {
   totalHours: number; legalMax: number; doubleEnd: number; totalMax: number;
 }) {
+  // Dynamic cap: expands beyond totalMax when hours exceed it
   const cap = Math.max(totalMax, totalHours);
-  const greenW  = (legalMax / cap) * 100;
-  const amberW  = ((doubleEnd - legalMax) / cap) * 100;
-  const redW    = ((totalMax - doubleEnd) / cap) * 100;
+
+  // 4 zone widths (blue / green / yellow / red)
+  const blueW  = (legalMax / cap) * 100;
+  const greenW = ((doubleEnd - legalMax) / cap) * 100;
+  const amberW = ((totalMax - doubleEnd) / cap) * 100;
+  // When totalHours > totalMax the bar still fills to 100 % and the remaining
+  // space is implicitly red (flex: 1 div below)
+
   const fillPct = Math.min((totalHours / cap) * 100, 100);
+
+  // Fill colour follows the 4-state model
   const fillColor =
-    totalHours <= legalMax  ? '#10B981' :
-    totalHours <= doubleEnd ? '#F59E0B' : '#EF4444';
+    totalHours <= legalMax  ? '#3B82F6' :   // blue  — below extras
+    totalHours <= doubleEnd ? '#10B981' :   // green — with extras (double-time)
+    totalHours <= totalMax  ? '#F59E0B' :   // yellow — near limit (triple-time)
+                              '#EF4444';    // red   — exceeds all permitted
 
   const hoursLabel = totalHours > 0
     ? `${totalHours % 1 === 0 ? totalHours : totalHours.toFixed(1)}h`
     : '';
 
-  // Keep pill inside track bounds (5 % – 92 %)
-  const pillLeft = `${Math.min(Math.max(fillPct, 5), 92)}%`;
+  // Keep pill inside track bounds (5 % – 96 %)
+  const pillLeft = `${Math.min(Math.max(fillPct, 5), 96)}%`;
 
   return (
     <div className="px-5 pb-2 pt-1 select-none">
@@ -334,13 +345,13 @@ function ComplianceBar({ totalHours, legalMax, doubleEnd, totalMax }: {
         )}
       </div>
 
-      {/* ── ROW 2: bar track ─────────────────────────────────────────── */}
+      {/* ── ROW 2: bar track (4 zones) ────────────────────────────── */}
       <div className="relative h-2.5 rounded-full overflow-hidden flex">
         {/* Zone backgrounds */}
-        <div style={{ width: `${greenW}%`, background: '#D1FAE5' }} />
-        <div style={{ width: `${amberW}%`, background: '#FEF3C7' }} />
-        <div style={{ width: `${redW}%`,   background: '#FEE2E2' }} />
-        {totalHours > totalMax && <div style={{ flex: 1, background: '#FEE2E2' }} />}
+        <div style={{ width: `${blueW}%`,  background: '#DBEAFE' }} />   {/* blue  */}
+        <div style={{ width: `${greenW}%`, background: '#D1FAE5' }} />   {/* green */}
+        <div style={{ width: `${amberW}%`, background: '#FEF3C7' }} />   {/* yellow */}
+        {totalHours > totalMax && <div style={{ flex: 1, background: '#FEE2E2' }} />}  {/* red overflow */}
 
         {/* Animated fill */}
         <div
@@ -348,35 +359,35 @@ function ComplianceBar({ totalHours, legalMax, doubleEnd, totalMax }: {
           style={{ width: `${fillPct}%`, background: fillColor, opacity: 0.82 }}
         />
 
-        {/* Thin white dividers at zone boundaries */}
-        {[greenW, greenW + amberW].map((pos, i) => (
+        {/* Thin white dividers at the 3 zone boundaries */}
+        {[blueW, blueW + greenW, blueW + greenW + amberW].map((pos, i) => (
           <div key={i} className="absolute inset-y-0 w-px bg-white/70" style={{ left: `${pos}%` }} />
         ))}
       </div>
 
-      {/* ── ROW 3: threshold labels — always in their own row, never overlapping ── */}
+      {/* ── ROW 3: threshold labels ───────────────────────────────── */}
       <div className="relative mt-1.5 h-4">
         {/* 0h — hard left */}
         <span className="absolute left-0 text-[9px] font-semibold text-[#CBD5E1]">0h</span>
 
-        {/* Legal max — centred on zone boundary */}
+        {/* Legal max — blue boundary */}
         <span
           className="absolute -translate-x-1/2 text-[9px] font-bold"
-          style={{ left: `${greenW}%`, color: '#10B981' }}
+          style={{ left: `${blueW}%`, color: '#3B82F6' }}
         >
           {legalMax}h
         </span>
 
-        {/* Double-time end — centred, nudged away from right edge */}
+        {/* Double-time end — green/yellow boundary */}
         <span
           className="absolute -translate-x-1/2 text-[9px] font-bold"
-          style={{ left: `${Math.min(greenW + amberW, 96)}%`, color: '#F59E0B' }}
+          style={{ left: `${Math.min(blueW + greenW, 88)}%`, color: '#10B981' }}
         >
           {doubleEnd}h
         </span>
 
-        {/* Total max — hard right */}
-        <span className="absolute right-0 text-[9px] font-bold text-[#EF4444]">
+        {/* Total max — yellow/red boundary, hard right */}
+        <span className="absolute right-0 text-[9px] font-bold text-[#F59E0B]">
           {totalMax}h
         </span>
       </div>

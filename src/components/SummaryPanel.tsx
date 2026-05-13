@@ -1,6 +1,6 @@
 import { CheckCircle, XCircle, TrendingUp, Users, AlertTriangle } from 'lucide-react';
 import type { Crew, CrewResult, FirmConfig } from '../data/lft';
-import { formatMXN, formatHours, isDayActive } from '../data/lft';
+import { formatMXN, formatHours } from '../data/lft';
 
 interface Props { crews: Crew[]; results: CrewResult[]; firm: FirmConfig; }
 
@@ -14,15 +14,6 @@ export function SummaryPanel({ crews, results, firm }: Props) {
   const totalOTCost = results.reduce((s, r) => s + r.totalOTCost, 0);
   const totalWorkers = crews.reduce((s, c) => s + c.workers, 0);
   const allOk = violating === 0;
-
-  // Weekly base salary cost per crew: salarioDiario × workers × days actually worked
-  const crewBaseCosts = crews.map(c => {
-    if (!hasSalary) return 0;
-    const activeDays = c.schedule.filter(d => isDayActive(d)).length;
-    return firm.salarioDiario * c.workers * activeDays;
-  });
-  const totalBaseCost = crewBaseCosts.reduce((s, v) => s + v, 0);
-  const totalWeeklyPayroll = totalBaseCost + totalOTCost;
 
   return (
     <div
@@ -80,13 +71,13 @@ export function SummaryPanel({ crews, results, firm }: Props) {
         />
         <Tile
           icon={<TrendingUp className="w-4 h-4" />}
-          label="Nómina Semanal"
-          value={hasSalary ? formatMXN(totalWeeklyPayroll) : '—'}
+          label="Total tiempo semanal extra"
+          value={hasSalary ? formatMXN(totalOTCost) : '—'}
           sub={
             !hasSalary
               ? 'configura el salario diario'
               : totalOTCost > 0
-                ? `+ ${formatMXN(totalOTCost)} en horas extra`
+                ? 'dobles (2×) y triples (3×)'
                 : 'sin horas extra'
           }
           iconColor={totalOTCost > 0 ? '#F59E0B' : '#10B981'}
@@ -102,8 +93,6 @@ export function SummaryPanel({ crews, results, firm }: Props) {
         <div className="space-y-2">
           {results.map((r, i) => {
             const crew = crews[i];
-            const baseCost = crewBaseCosts[i];
-            const totalCrewCost = baseCost + r.totalOTCost;
             const hasOT = r.totalOTCost > 0;
 
             return (
@@ -128,10 +117,10 @@ export function SummaryPanel({ crews, results, firm }: Props) {
                       +{formatHours(r.overtimeHours)} TE
                     </span>
                   )}
-                  {/* Cost: show total weekly (base + OT) when salary configured, otherwise dash */}
+                  {/* Cost: show OT cost only when salary configured, otherwise dash */}
                   {hasSalary ? (
-                    <span className="ml-auto font-bold text-[#2D2D2D] text-sm">
-                      {formatMXN(totalCrewCost)}
+                    <span className="ml-auto font-bold text-sm" style={{ color: r.totalOTCost > 0 ? '#92400E' : '#94A3B8' }}>
+                      {formatMXN(r.totalOTCost)}
                     </span>
                   ) : (
                     <span className="ml-auto font-bold text-[#94A3B8] text-sm">—</span>
@@ -191,13 +180,13 @@ export function SummaryPanel({ crews, results, firm }: Props) {
                 className="text-xs font-extrabold uppercase tracking-wide"
                 style={{ color: totalOTCost > 0 ? '#92400E' : '#065F46' }}
               >
-                Costo total semanal de nómina
+                Costo total semanal por horas extra
               </span>
               <span
                 className="text-lg font-extrabold"
                 style={{ color: totalOTCost > 0 ? '#92400E' : '#065F46' }}
               >
-                {formatMXN(totalWeeklyPayroll)}
+                {formatMXN(totalOTCost)}
               </span>
             </div>
             {/* Extra-cost callout — only when there is OT */}

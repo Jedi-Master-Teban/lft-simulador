@@ -220,6 +220,19 @@ export function calculateCrewResult(crew: Crew, firm: FirmConfig): CrewResult {
 
 const DEFAULT_TIMES = { start: '07:00', end: '15:00' };
 
+/** Returns the default weekly schedule: Mon–Sat 07:00–15:00, Sunday at rest. */
+export function createDefaultSchedule(): WeekSchedule {
+  return [
+    { ...DEFAULT_TIMES, rest: false }, // Lunes
+    { ...DEFAULT_TIMES, rest: false }, // Martes
+    { ...DEFAULT_TIMES, rest: false }, // Miércoles
+    { ...DEFAULT_TIMES, rest: false }, // Jueves
+    { ...DEFAULT_TIMES, rest: false }, // Viernes
+    { ...DEFAULT_TIMES, rest: false }, // Sábado
+    { ...DEFAULT_TIMES, rest: true  }, // Domingo — pre-filled but toggled off
+  ];
+}
+
 export function createDefaultCrew(index: number): Crew {
   return {
     id: crypto.randomUUID(),
@@ -227,15 +240,7 @@ export function createDefaultCrew(index: number): Crew {
     shiftType: 'Diurna',
     shiftOverride: false,
     workers: 10,
-    schedule: [
-      { ...DEFAULT_TIMES, rest: false }, // Lunes
-      { ...DEFAULT_TIMES, rest: false }, // Martes
-      { ...DEFAULT_TIMES, rest: false }, // Miércoles
-      { ...DEFAULT_TIMES, rest: false }, // Jueves
-      { ...DEFAULT_TIMES, rest: false }, // Viernes
-      { ...DEFAULT_TIMES, rest: false }, // Sábado
-      { ...DEFAULT_TIMES, rest: true  }, // Domingo — pre-filled but toggled off
-    ],
+    schedule: createDefaultSchedule(),
   };
 }
 

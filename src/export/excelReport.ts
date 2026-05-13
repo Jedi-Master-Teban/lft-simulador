@@ -186,37 +186,57 @@ export function generateExcel(state: AppState, results: CrewResult[]) {
 
   // ── SHEET 1: Portada ────────────────────────────────────────────────────
 
+  // Cover sheet spans A–L (12 columns, indices 0–11)
+  const NCOLS_COVER = 12;
+  const E = (r: number, c: number) => XLSX.utils.encode_cell({ r, c });
+  const PAD = ['', '', '', '', '', '', '', '', ''] as const; // 9 trailing empty cells for 12-col rows
+
   const cover: Row[] = [
-    [''],                                                   // r0 spacer
-    ['SIMULADOR DE REDUCCIÓN DE JORNADA LABORAL'],         // r1 big title
-    [''],                                                   // r2
-    ['Taller 40 Horas — Catch Consulting, S.C.'],          // r3 subtitle
-    [''],                                                   // r4
-    ['', 'Empresa',      firm.razonSocial || '(no especificado)', ''],  // r5
-    ['', 'Planta',       firm.planta      || '(no especificado)', ''],  // r6
-    ['', 'Año',          firm.year,                        ''],         // r7
-    ['', 'Fecha',        today,                            ''],         // r8
-    ['', 'Salario diario prom.', formatMXN(firm.salarioDiario), ''],    // r9
-    [''],                                                   // r10
-    ['', 'Total horas extra', formatHours(totalExtra),    ''],  // r11
-    ['', 'Costo TE semanal', formatMXN(totalOT),          ''],  // r12
-    [''],                                                   // r13
-    ['ESTATUS'],                                            // r14
-    [allOk ? 'EN CUMPLIMIENTO CON LA LFT' : 'INCUMPLIMIENTO DETECTADO'], // r15
-    [''],                                                   // r16
-    [''],                                                   // r17
+    [''],                                                          // r0 spacer
+    ['SIMULADOR DE REDUCCIÓN DE JORNADA LABORAL'],                // r1 big title (merged A–L)
+    [''],                                                          // r2
+    ['Taller 40 Horas — Catch Consulting, S.C.'],                 // r3 subtitle (merged A–L)
+    [''],                                                          // r4
+    ['', 'Empresa',            firm.razonSocial || '(no especificado)', ...PAD],  // r5
+    ['', 'Planta',             firm.planta      || '(no especificado)', ...PAD],  // r6
+    ['', 'Año',                firm.year,                         ...PAD],        // r7
+    ['', 'Fecha',              today,                             ...PAD],        // r8
+    ['', 'Salario diario prom.', formatMXN(firm.salarioDiario),  ...PAD],        // r9
+    [''],                                                          // r10
+    ['', 'Total horas extra',  formatHours(totalExtra),           ...PAD],        // r11
+    ['', 'Costo TE semanal',   formatMXN(totalOT),                ...PAD],        // r12
+    [''],                                                          // r13
+    ['ESTATUS'],                                                   // r14 (merged A–L)
+    [allOk ? 'EN CUMPLIMIENTO CON LA LFT' : 'INCUMPLIMIENTO DETECTADO'], // r15 (merged A–L)
+    [''],                                                          // r16
+    [''],                                                          // r17
     ['Agradecemos que hayas utilizado el Simulador de Jornada Laboral de Catch Consulting.'], // r18
-    ['Los resultados contienen tu estatus de compliance con la Ley Federal del Trabajo,'],  // r19
-    ['la estimación de horas extra y el valor de dichas horas para el año de tu simulación.'],// r20
-    [''],                                                   // r21
+    ['Los resultados contienen tu estatus de compliance con la Ley Federal del Trabajo,'],   // r19
+    ['la estimación de horas extra y el valor de dichas horas para el año de tu simulación.'], // r20
+    [''],                                                          // r21
     ['Te esperamos en una nueva oportunidad de capacitación para estar al tanto de los'],    // r22
     ['nuevos cambios en la regulación laboral. ¡Siempre puedes contar con nosotros!'],      // r23
-    [''],                                                   // r24
+    [''],                                                          // r24
     ['® Prohibido el uso o distribución sin autorización expresa de Catch Consulting, S.C. | www.catchconsulting.com.mx'],
   ];
 
   const wsCover = XLSX.utils.aoa_to_sheet(cover);
-  wsCover['!cols'] = [{ wch: 4 }, { wch: 22 }, { wch: 36 }, { wch: 4 }];
+
+  // Columns A–L: narrow spacer | label | value (wide, spanning C–K) | narrow spacer
+  wsCover['!cols'] = [
+    { wch: 2  }, // A — left spacer
+    { wch: 22 }, // B — label
+    { wch: 14 }, // C — value start
+    { wch: 14 }, // D
+    { wch: 14 }, // E
+    { wch: 14 }, // F
+    { wch: 14 }, // G
+    { wch: 14 }, // H
+    { wch: 14 }, // I
+    { wch: 14 }, // J
+    { wch: 14 }, // K
+    { wch: 2  }, // L — right spacer
+  ];
   wsCover['!rows'] = [
     { hpt: 8 }, { hpt: 46 }, { hpt: 8 }, { hpt: 24 }, { hpt: 8 },
     { hpt: 20 }, { hpt: 20 }, { hpt: 20 }, { hpt: 20 }, { hpt: 20 },
@@ -228,38 +248,39 @@ export function generateExcel(state: AppState, results: CrewResult[]) {
     { hpt: 8 },  { hpt: 14 },
   ];
 
-  // Full-page cyan background
-  for (let r = 0; r < cover.length; r++) styleRow(wsCover, r, 4, S_COVER_BG);
+  // Full-page cyan background across all 12 columns
+  for (let r = 0; r < cover.length; r++) styleRow(wsCover, r, NCOLS_COVER, S_COVER_BG);
 
-  // Title row
-  merge(wsCover, 1, 0, 1, 3);
-  wsCover[XLSX.utils.encode_cell({ r: 1, c: 0 })].s = S_TITLE;
+  // Title row — merged A–L
+  merge(wsCover, 1, 0, 1, 11);
+  wsCover[E(1, 0)].s = S_TITLE;
 
-  // Subtitle row
-  merge(wsCover, 3, 0, 3, 3);
-  wsCover[XLSX.utils.encode_cell({ r: 3, c: 0 })].s = S_SUBTITLE;
+  // Subtitle row — merged A–L
+  merge(wsCover, 3, 0, 3, 11);
+  wsCover[E(3, 0)].s = S_SUBTITLE;
 
-  // Info rows: label (col1) + value (col2)
+  // Info rows: label (col B=1) + value merged across cols C–K (c2–c10)
   for (const r of [5, 6, 7, 8, 9, 11, 12]) {
-    wsCover[XLSX.utils.encode_cell({ r, c: 1 })].s = S_COVER_LABEL;
-    wsCover[XLSX.utils.encode_cell({ r, c: 2 })].s = S_COVER_VALUE;
+    wsCover[E(r, 1)].s = S_COVER_LABEL;
+    merge(wsCover, r, 2, r, 10);   // value spans C–K
+    wsCover[E(r, 2)].s = S_COVER_VALUE;
   }
 
-  // Status rows
-  merge(wsCover, 14, 0, 14, 3);
-  wsCover[XLSX.utils.encode_cell({ r: 14, c: 0 })].s = S_BLUE_HEADER;
+  // Status rows — merged A–L
+  merge(wsCover, 14, 0, 14, 11);
+  wsCover[E(14, 0)].s = S_BLUE_HEADER;
 
-  merge(wsCover, 15, 0, 15, 3);
-  wsCover[XLSX.utils.encode_cell({ r: 15, c: 0 })].s = allOk ? S_STATUS_OK : S_STATUS_ERR;
+  merge(wsCover, 15, 0, 15, 11);
+  wsCover[E(15, 0)].s = allOk ? S_STATUS_OK : S_STATUS_ERR;
 
-  // Text rows
+  // Text rows — merged A–L
   for (const r of [18, 19, 20, 22, 23]) {
-    merge(wsCover, r, 0, r, 3);
+    merge(wsCover, r, 0, r, 11);
   }
 
-  // Disclaimer
-  merge(wsCover, 25, 0, 25, 3);
-  wsCover[XLSX.utils.encode_cell({ r: 25, c: 0 })].s = S_DISCLAIMER;
+  // Disclaimer — merged A–L
+  merge(wsCover, 25, 0, 25, 11);
+  wsCover[E(25, 0)].s = S_DISCLAIMER;
 
   XLSX.utils.book_append_sheet(wb, wsCover, 'Portada');
 

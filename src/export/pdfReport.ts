@@ -93,7 +93,7 @@ export function generatePDF(state: AppState, results: CrewResult[]) {
   doc.setFontSize(36);
   doc.setFont('helvetica', 'bold');
   text(doc, WHITE);
-  doc.text('Taller Reduccion de Jornada', PAGE_W / 2, 72, { align: 'center' });
+  doc.text('Taller Reducción de Jornada', PAGE_W / 2, 72, { align: 'center' });
 
   doc.setFontSize(40);
   doc.text('40 horas', PAGE_W / 2, 90, { align: 'center' });
@@ -174,7 +174,7 @@ export function generatePDF(state: AppState, results: CrewResult[]) {
   autoTable(doc, {
     startY: y,
     margin: { left: M, right: M },
-    head: [['Tripulacion', 'Jornada Legal (h/sem)', 'Extras (h)', 'Dobles (h)', 'Triples (h)', 'Costo TE', 'Estatus']],
+    head: [['Tripulación', 'Jornada Legal (h/sem)', 'Extras (h)', 'Dobles (h)', 'Triples (h)', 'Costo TE', 'Estatus']],
     body: results.map((r, i) => [
       crews[i].nombre,
       `${r.legalMaxHours}h`,
