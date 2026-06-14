@@ -65,6 +65,7 @@ export const DAILY_REGULAR_MAX: Record<ShiftType, number> = {
 
 export const MAX_DAILY_ABS = 12;
 export const MAX_EXTRAORDINARY_DAYS = 4;
+export const MEAL_BREAK_HOURS = 1; // Art. 63 LFT — tiempo para comida, no computable en la jornada
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -88,7 +89,7 @@ export function getDayHours(day: DaySchedule): number {
   const start = timeToMinutes(day.start);
   let end = timeToMinutes(day.end);
   if (end <= start) end += 1440;
-  return (end - start) / 60;
+  return Math.max(0, (end - start) / 60 - MEAL_BREAK_HOURS);
 }
 
 export function getNocturnaMinutes(day: DaySchedule): number {

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Trash2, Users, ChevronDown, ChevronUp, AlertTriangle, CheckCircle } from 'lucide-react';
+import { Trash2, Users, ChevronDown, ChevronUp, AlertTriangle, CheckCircle, Info } from 'lucide-react';
 import type { Crew, CrewResult, FirmConfig, ShiftType } from '../data/lft';
 import { REFERENCE, formatMXN, formatHours } from '../data/lft';
 import { ScheduleGrid } from './ScheduleGrid';
@@ -156,6 +156,18 @@ export function CrewCard({ crew, result, firm, onUpdate, onDelete }: Props) {
 
       {showSchedule && (
         <div className="px-5 py-4">
+          {/* ── Meal break notice ──────────────────────────────────────── */}
+          <div
+            className="flex items-center gap-2 mb-3 px-3 py-2 rounded-lg text-xs"
+            style={{ background: '#F0FBFF', border: '1px solid #BAE6FD', color: '#0369A1' }}
+          >
+            <Info className="w-3.5 h-3.5 shrink-0" style={{ color: '#1BBBEE' }} />
+            <span>
+              Las horas mostradas ya descuentan{' '}
+              <strong>1 hora de tiempo para comida</strong>{' '}
+              por jornada activa (Art. 63 LFT).
+            </span>
+          </div>
           <ScheduleGrid
             schedule={crew.schedule}
             dailyHours={result.dailyHours}
