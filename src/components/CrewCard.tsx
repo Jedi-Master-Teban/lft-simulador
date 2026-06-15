@@ -190,8 +190,12 @@ export function CrewCard({ crew, result, firm, onUpdate, onDelete }: Props) {
                   </p>
                   <p>
                     <strong>Art. 64 LFT —</strong> Cuando el trabajador no pueda salir
-                    del lugar donde presta sus servicios durante el descanso, ese tiempo
-                    se computa como <strong>tiempo efectivo de jornada</strong>.
+                    del lugar donde presta sus servicios durante el descanso —incluyendo
+                    la <strong>hora de almuerzo</strong>—, ese tiempo se computa como{' '}
+                    <strong>tiempo efectivo de jornada</strong>. Por ello, los acuerdos
+                    de media hora, una hora u otro tiempo destinado al almuerzo no
+                    afectan el cálculo de las horas efectivas registradas en esta
+                    herramienta.
                   </p>
                 </div>
                 {/* Arrow */}
