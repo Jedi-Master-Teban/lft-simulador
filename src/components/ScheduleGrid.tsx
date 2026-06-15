@@ -1,14 +1,13 @@
-import type { DaySchedule, MealBreak, WeekSchedule } from '../data/lft';
-import { getDayHours, isDayActive, DAYS_SHORT, MEAL_BREAK_DEFAULT } from '../data/lft';
+import type { DaySchedule, WeekSchedule } from '../data/lft';
+import { getDayHours, isDayActive, DAYS_SHORT } from '../data/lft';
 
 interface Props {
   schedule: WeekSchedule;
   dailyHours: number[];
-  mealBreak: MealBreak;
   onChange: (schedule: WeekSchedule) => void;
 }
 
-export function ScheduleGrid({ schedule, dailyHours, mealBreak, onChange }: Props) {
+export function ScheduleGrid({ schedule, dailyHours, onChange }: Props) {
   const update = (i: number, patch: Partial<DaySchedule>) => {
     const next = [...schedule] as WeekSchedule;
     next[i] = { ...next[i], ...patch };
@@ -29,7 +28,7 @@ export function ScheduleGrid({ schedule, dailyHours, mealBreak, onChange }: Prop
         {DAYS_SHORT.map((label, i) => {
           const day = schedule[i];
           const active = isDayActive(day);
-          const hours = dailyHours[i] ?? getDayHours(day, mealBreak ?? MEAL_BREAK_DEFAULT);
+          const hours = dailyHours[i] ?? getDayHours(day);
           const isOvernight = active && day.start && day.end &&
             getDayHours(day) > (() => {
               const s = day.start.split(':').map(Number);

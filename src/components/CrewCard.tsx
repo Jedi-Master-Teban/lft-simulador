@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Trash2, Users, ChevronDown, ChevronUp, AlertTriangle, CheckCircle, Info } from 'lucide-react';
 import type { Crew, CrewResult, FirmConfig, ShiftType } from '../data/lft';
-import { REFERENCE, MEAL_BREAK_DEFAULT, formatMXN, formatHours } from '../data/lft';
+import { REFERENCE, formatMXN, formatHours } from '../data/lft';
 import { ScheduleGrid } from './ScheduleGrid';
 
 interface Props {
@@ -146,9 +146,64 @@ export function CrewCard({ crew, result, firm, onUpdate, onDelete }: Props) {
         onClick={() => setShowSchedule(s => !s)}
         className="w-full flex items-center justify-between px-5 py-2 border-y border-[#E2E8F0] hover:bg-[#F8FAFC] transition-colors"
       >
-        <span className="text-[11px] font-extrabold uppercase tracking-widest" style={{ color: '#1BBBEE' }}>
-          Horario Semanal
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="text-[11px] font-extrabold uppercase tracking-widest" style={{ color: '#1BBBEE' }}>
+            Horario Semanal
+          </span>
+
+          {/* ── Art. 63/64 tooltip ──────────────────────────────────── */}
+          <div
+            className="relative flex items-center"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="group flex items-center">
+              <Info
+                className="w-3.5 h-3.5 cursor-default"
+                style={{ color: '#94A3B8' }}
+              />
+              {/* Tooltip panel */}
+              <div
+                className="pointer-events-none absolute left-5 top-1/2 -translate-y-1/2 z-20
+                            w-72 opacity-0 group-hover:opacity-100
+                            transition-opacity duration-150"
+              >
+                <div
+                  className="rounded-xl px-3.5 py-3 text-[11px] leading-relaxed shadow-lg"
+                  style={{
+                    background: '#FFFFFF',
+                    border: '1px solid #BAE6FD',
+                    color: '#334155',
+                    boxShadow: '0 4px 16px rgba(27,187,238,0.12)',
+                  }}
+                >
+                  <p className="font-bold mb-1" style={{ color: '#1BBBEE' }}>
+                    Jornada y descanso para comida
+                  </p>
+                  <p className="mb-1.5">
+                    Las horas se calculan sobre el tiempo total entre entrada y salida.
+                    El descanso para comer que ocurre <strong>dentro</strong> de ese
+                    periodo ya está incluido en la jornada.
+                  </p>
+                  <p className="mb-1.5">
+                    <strong>Art. 63 LFT —</strong> Durante la jornada continua se
+                    concederá al trabajador un descanso de media hora, por lo menos.
+                  </p>
+                  <p>
+                    <strong>Art. 64 LFT —</strong> Cuando el trabajador no pueda salir
+                    del lugar donde presta sus servicios durante el descanso, ese tiempo
+                    se computa como <strong>tiempo efectivo de jornada</strong>.
+                  </p>
+                </div>
+                {/* Arrow */}
+                <div
+                  className="absolute left-[-5px] top-1/2 -translate-y-1/2 w-2.5 h-2.5 rotate-45"
+                  style={{ background: '#FFFFFF', borderLeft: '1px solid #BAE6FD', borderBottom: '1px solid #BAE6FD' }}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
         {showSchedule
           ? <ChevronUp className="w-3.5 h-3.5 text-[#94A3B8]" />
           : <ChevronDown className="w-3.5 h-3.5 text-[#94A3B8]" />}
@@ -156,29 +211,9 @@ export function CrewCard({ crew, result, firm, onUpdate, onDelete }: Props) {
 
       {showSchedule && (
         <div className="px-5 py-4">
-          {/* ── Meal break notice (hidden when break is disabled) ───────── */}
-          {(firm.mealBreak ?? MEAL_BREAK_DEFAULT) > 0 && (
-            <div
-              className="flex items-center gap-2 mb-3 px-3 py-2 rounded-lg text-xs"
-              style={{ background: '#F0FBFF', border: '1px solid #BAE6FD', color: '#0369A1' }}
-            >
-              <Info className="w-3.5 h-3.5 shrink-0" style={{ color: '#1BBBEE' }} />
-              <span>
-                Las horas mostradas ya descuentan{' '}
-                <strong>
-                  {(firm.mealBreak ?? MEAL_BREAK_DEFAULT) === 0.5
-                    ? '30 minutos'
-                    : '1 hora'}{' '}
-                  de tiempo para comida
-                </strong>{' '}
-                por jornada activa (Art. 63 LFT).
-              </span>
-            </div>
-          )}
           <ScheduleGrid
             schedule={crew.schedule}
             dailyHours={result.dailyHours}
-            mealBreak={firm.mealBreak ?? MEAL_BREAK_DEFAULT}
             onChange={schedule => onUpdate({ ...crew, schedule })}
           />
         </div>
