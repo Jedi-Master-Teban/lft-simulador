@@ -1,6 +1,6 @@
 import catchLogo from '../../LOGO.png';
-import type { FirmConfig, LFTYear } from '../data/lft';
-import { LFT_YEARS } from '../data/lft';
+import type { FirmConfig, LFTYear, MealBreak } from '../data/lft';
+import { LFT_YEARS, MEAL_BREAK_DEFAULT } from '../data/lft';
 
 interface Props {
   firm: FirmConfig;
@@ -112,6 +112,42 @@ export function FirmHeader({ firm, onUpdate }: Props) {
 
           </div>
         </div>
+
+        {/* ── Meal break strip ────────────────────────────────────────── */}
+        <div className="border-t border-[#E2E8F0] py-3 flex flex-wrap items-center gap-x-4 gap-y-2">
+          <span className="text-[10px] font-bold uppercase tracking-widest text-[#94A3B8] shrink-0">
+            Descanso para Comida
+          </span>
+          <div className="flex items-center gap-1.5">
+            {([
+              { value: 0,   label: 'Ninguno' },
+              { value: 0.5, label: '30 min'  },
+              { value: 1,   label: '1 hora'  },
+            ] as { value: MealBreak; label: string }[]).map(({ value, label }) => {
+              const active = (firm.mealBreak ?? MEAL_BREAK_DEFAULT) === value;
+              return (
+                <button
+                  key={value}
+                  onClick={() => set('mealBreak', value)}
+                  className="px-3 py-1 text-xs font-semibold rounded-full border transition-all"
+                  style={
+                    active
+                      ? { background: '#1BBBEE', color: '#fff', borderColor: '#1BBBEE' }
+                      : { background: '#fff', color: '#64748B', borderColor: '#E2E8F0' }
+                  }
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+          <span className="text-[11px] text-[#94A3B8]">
+            {(firm.mealBreak ?? MEAL_BREAK_DEFAULT) === 0
+              ? 'Las horas se contabilizan sin descuento de comida.'
+              : `Se descuenta ${(firm.mealBreak ?? MEAL_BREAK_DEFAULT) === 0.5 ? '30 min' : '1 hora'} por jornada activa (Art. 63 LFT).`}
+          </span>
+        </div>
+
       </div>
     </header>
   );

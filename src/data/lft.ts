@@ -2,6 +2,7 @@
 
 export type ShiftType = 'Diurna' | 'Mixta' | 'Nocturna';
 export type LFTYear = 2026 | 2027 | 2028 | 2029 | 2030;
+export type MealBreak = 0 | 0.5 | 1;
 
 export const LFT_YEARS: LFTYear[] = [2026, 2027, 2028, 2029, 2030];
 export const DAYS_ES = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'] as const;
@@ -32,6 +33,7 @@ export interface FirmConfig {
   planta: string;
   year: LFTYear;
   salarioDiario: number;
+  mealBreak: MealBreak;  // Art. 63 LFT — tiempo para comida configurable por empresa
 }
 
 export interface AppState {
@@ -65,7 +67,8 @@ export const DAILY_REGULAR_MAX: Record<ShiftType, number> = {
 
 export const MAX_DAILY_ABS = 12;
 export const MAX_EXTRAORDINARY_DAYS = 4;
-export const MEAL_BREAK_HOURS = 1; // Art. 63 LFT — tiempo para comida, no computable en la jornada
+/** Default meal-break deduction (1 h). Used as fallback for pre-existing localStorage data. */
+export const MEAL_BREAK_DEFAULT: MealBreak = 1;
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -83,13 +86,13 @@ export function timeToMinutes(t: string): number {
   return (h || 0) * 60 + (m || 0);
 }
 
-export function getDayHours(day: DaySchedule): number {
+export function getDayHours(day: DaySchedule, mealBreak: MealBreak = MEAL_BREAK_DEFAULT): number {
   if (!isDayActive(day)) return 0;
   if (!day.start || !day.end) return 0;
   const start = timeToMinutes(day.start);
   let end = timeToMinutes(day.end);
   if (end <= start) end += 1440;
-  return Math.max(0, (end - start) / 60 - MEAL_BREAK_HOURS);
+  return Math.max(0, (end - start) / 60 - mealBreak);
 }
 
 export function getNocturnaMinutes(day: DaySchedule): number {
@@ -152,7 +155,9 @@ export function calculateCrewResult(crew: Crew, firm: FirmConfig): CrewResult {
   const legalMaxHours = ref[effectiveShiftType];
   const dailyMax = DAILY_REGULAR_MAX[effectiveShiftType];
 
-  const dailyHours = crew.schedule.map(d => getDayHours(d));
+  // Use firm setting; fall back to default for pre-existing localStorage data (no mealBreak field)
+  const mealBreak = firm.mealBreak ?? MEAL_BREAK_DEFAULT;
+  const dailyHours = crew.schedule.map(d => getDayHours(d, mealBreak));
   const totalWeeklyHours = dailyHours.reduce((a, b) => a + b, 0);
   const maxDailyHours = Math.max(...dailyHours, 0);
   const daysWithOvertime = dailyHours.filter(h => h > dailyMax).length;
@@ -250,6 +255,7 @@ export const DEFAULT_FIRM: FirmConfig = {
   planta: '',
   year: 2026,
   salarioDiario: 500,
+  mealBreak: 1,
 };
 
 export function createDefaultState(): AppState {
